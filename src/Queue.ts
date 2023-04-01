@@ -116,7 +116,7 @@ export class Queue<T, R> {
             await this._musl.waitForUnlock()
         }
         this._queue.push(item)
-        release(), this._afterPush();
+        release(), this._afterPush()
     }
 
     clear() {
