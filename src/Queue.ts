@@ -1,6 +1,6 @@
-import { Mutex } from "async-mutex"
-import { QueueConfig } from "./QueueConfig"
-import { WorkerFn } from "./WorkerFn"
+import { Mutex } from 'async-mutex'
+import { QueueConfig } from './QueueConfig'
+import { WorkerFn } from './WorkerFn'
 
 export class Queue<T, R> {
     public readonly queueSizeLimit?: number
@@ -24,9 +24,9 @@ export class Queue<T, R> {
     constructor(config: QueueConfig<T, R>) {
         config = {
             ...{
-                workPolicy: "after-add",
+                workPolicy: 'after-add',
             },
-            ...config
+            ...config,
         }
 
         const { queueSizeLimit, buffSizeLimit, worker, workPolicy } = config
@@ -36,13 +36,13 @@ export class Queue<T, R> {
         this.buffSizeLimit = buffSizeLimit
         this._worker = worker
 
-        if(config.workPolicy === "async-cycle-one") {
+        if (config.workPolicy === 'async-cycle-one') {
             this._startInterval(config.interval)
-        } else if(config.workPolicy === "async-cycle-many") {
+        } else if (config.workPolicy === 'async-cycle-many') {
             for (let i = 0; i < config.groupSize; i++) {
                 this._startInterval(config.interval)
             }
-        } else if(config.workPolicy === "after-add") {
+        } else if (config.workPolicy === 'after-add') {
             this._afterPush = () => this._work()
         }
     }
@@ -56,21 +56,21 @@ export class Queue<T, R> {
     }
 
     private async _clerIntervals() {
-        this._intervals.map(item => clearInterval(item))
+        this._intervals.map((item) => clearInterval(item))
     }
 
     private async _work() {
         const item = this._queue.shift()
-        if(item === undefined) return;
+        if (item === undefined) return
 
-        const response = await Promise.resolve(this._worker(item));
+        const response = await Promise.resolve(this._worker(item))
 
-        if(Array.isArray(response)) {
-            this._buff.push(...response);
+        if (Array.isArray(response)) {
+            this._buff.push(...response)
         } else {
             this._buff.push(response)
         }
-        if(this._mugw.isLocked()) {
+        if (this._mugw.isLocked()) {
             this._mugw.release()
         }
     }
@@ -81,14 +81,14 @@ export class Queue<T, R> {
         const item = this._buff.shift()
         // console.log(item)
 
-        if(item !== undefined) {
-            if(this._musl.isLocked()) {
+        if (item !== undefined) {
+            if (this._musl.isLocked()) {
                 this._musl.release()
             }
             release()
             return item
         }
-        
+
         await this._mugw.acquire()
         await this._mugw.waitForUnlock()
         release()
@@ -96,28 +96,27 @@ export class Queue<T, R> {
     }
 
     async push(item: T | T[]) {
-        if(Array.isArray(item)) {
-            item.map(v => this.push(v))
-            return;
+        if (Array.isArray(item)) {
+            item.map((v) => this.push(v))
+            return
         }
 
-        const release = await this._mu.acquire();
+        const release = await this._mu.acquire()
 
-        if(this._musl.isLocked()) {
-            await this._musl.waitForUnlock();
+        if (this._musl.isLocked()) {
+            await this._musl.waitForUnlock()
         }
 
-        if
-            (this.queueSizeLimit && this._queue.length >= this.queueSizeLimit || 
-            this.buffSizeLimit && this._buff.length >= this.buffSizeLimit
+        if (
+            (this.queueSizeLimit &&
+                this._queue.length >= this.queueSizeLimit) ||
+            (this.buffSizeLimit && this._buff.length >= this.buffSizeLimit)
         ) {
             await this._musl.acquire()
-            await this._musl.waitForUnlock();
+            await this._musl.waitForUnlock()
         }
         this._queue.push(item)
-        // console.log(`${item} pushed, size queue: ${this._queue.length}, buff: ${this._buff.length}`)
-        release()
-        this._afterPush()
+        release(), this._afterPush()
     }
 
     clear() {
@@ -132,5 +131,4 @@ export class Queue<T, R> {
     get buff(): number {
         return this._buff.length
     }
-
 }

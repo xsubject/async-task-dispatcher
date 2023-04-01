@@ -1,6 +1,6 @@
-import { Queue } from "./Queue"
+import { Queue } from './Queue'
 
-export { Queue } from "./Queue"
-export { QueueConfig } from "./QueueConfig"
+export { Queue } from './Queue'
+export { QueueConfig } from './QueueConfig'
 
 export default Queue
