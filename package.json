@@ -7,7 +7,8 @@
         "prepare": "tsc",
         "build": "tsc",
         "start": "ts-node src/index.ts",
-        "format:check": "pretty-quick --stagged"
+        "format:check": "prettier --check src/",
+        "format:write": "prettier --write src/"
     },
     "keywords": [],
     "author": "",
