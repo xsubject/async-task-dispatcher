@@ -27,16 +27,16 @@ The constructor takes a `QueueConfig` object as an argument.
 - `queueSizeLimit` (optional): Limits the maximum allowed size of the task queue.
 - `buffSizeLimit` (optional): Limits the maximum allowed size of the results buffer that have not yet been retrieved.
 - `workPolicy`: Configures how tasks are processed in the queue.
-  - "after-add" (default): The worker is started immediately after calling the `push()` method.
-  - "async-cycle-one": The worker is started in a separate asynchronous call with an optional `interval`.
-  - "async-cycle-many": Same as "async-cycle-one", but with multiple asynchronous calls. The number of calls is determined by `groupSize`.
-  - undefined: No specific work policy is applied.
+  - `after-add` (default): The worker is started immediately after calling the `push()` method.
+  - `async-cycle-one`: The worker is started in a separate asynchronous call with an optional `interval`.
+  - `async-cycle-many`: Same as `async-cycle-one`, but with multiple asynchronous calls. The number of calls is determined by `groupSize`.
+  - `undefined`: No specific work policy is applied.
 
 ### Methods
 
-- `async get(): Promise<R>`: Returns a single ready task result. If there are no results available, it will wait for them.
-- `async push(item: T | T[]): Promise<void>`: Adds tasks to the queue.
-- `async clear(): Promise<void>`: Stops the background worker.
+- `get(): Promise<R>`: Returns a single ready task result. If there are no results available, it will wait for them.
+- `push(item: T | T[]): Promise<void>`: Adds tasks to the queue.
+- `clear(): void`: Stops the background worker.
 - `get length(): number`: Returns the size of the task queue.
 - `get buff(): number`: Returns the size of the results buffer.
 
