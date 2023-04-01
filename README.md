@@ -1,4 +1,5 @@
 # Async Task Dispatcher
+[![npm version](https://badge.fury.io/js/async-task-dispatcher.svg)](https://badge.fury.io/js/async-task-dispatcher)
 
 Async Task Dispatcher is a TypeScript library that implements a generic queue for processing tasks asynchronously and obtaining their results.
 
