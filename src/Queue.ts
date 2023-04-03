@@ -13,6 +13,7 @@ export class Queue<T, R> {
     private _musl: Mutex = new Mutex()
     private _mug: Mutex = new Mutex()
     private _mugw: Mutex = new Mutex()
+    private _muiw: Mutex = new Mutex()
 
     private _queue: T[] = []
     private _buff: R[] = []
@@ -60,9 +61,15 @@ export class Queue<T, R> {
         this._intervals.map((item) => clearInterval(item))
     }
 
+    private async _safeInWorkIncrement(x: number) {
+        const release = await this._muiw.acquire()
+        this._inWork += x
+        release()
+    }
+
     private async _work() {
         const item = this._queue.shift()
-        this._inWork = this._inWork + 1
+        this._safeInWorkIncrement(1)
         if (item === undefined) return
 
         const response = await Promise.resolve(this._worker(item))
@@ -72,7 +79,7 @@ export class Queue<T, R> {
         } else {
             this._buff.push(response)
         }
-        this._inWork = this._inWork - 1
+        this._safeInWorkIncrement(-1)
 
         if (this._mugw.isLocked()) {
             this._mugw.release()
