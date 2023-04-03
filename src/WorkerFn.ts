@@ -1,1 +1,1 @@
-export type WorkerFn<T, R> = (item: T) => PromiseLike<R> | PromiseLike<R[]>
+export type WorkerFn<T, R> = (item: T) => Promise<R> | Promise<R[]> | R | R[]
