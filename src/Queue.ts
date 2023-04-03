@@ -16,6 +16,7 @@ export class Queue<T, R> {
 
     private _queue: T[] = []
     private _buff: R[] = []
+    private _inWork: number = 0
 
     private _afterPush = () => {}
 
@@ -61,6 +62,7 @@ export class Queue<T, R> {
 
     private async _work() {
         const item = this._queue.shift()
+        this._inWork = this._inWork + 1
         if (item === undefined) return
 
         const response = await Promise.resolve(this._worker(item))
@@ -70,6 +72,8 @@ export class Queue<T, R> {
         } else {
             this._buff.push(response)
         }
+        this._inWork = this._inWork - 1
+
         if (this._mugw.isLocked()) {
             this._mugw.release()
         }
@@ -125,6 +129,14 @@ export class Queue<T, R> {
     }
 
     get length(): number {
+        return this._queue.length + this._buff.length + this._inWork
+    }
+
+    get working(): number {
+        return this._inWork
+    }
+
+    get size(): number {
         return this._queue.length
     }
 
