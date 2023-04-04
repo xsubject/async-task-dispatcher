@@ -1,5 +1,6 @@
 import { Mutex } from 'async-mutex'
 import { QueueConfig } from './QueueConfig'
+import { Task } from './Task'
 import { WorkerFn } from './WorkerFn'
 
 export class Queue<T, R> {
@@ -7,7 +8,7 @@ export class Queue<T, R> {
     public readonly buffSizeLimit?: number
     public readonly workPolicy: string
 
-    private readonly _worker: WorkerFn<T, R>
+    private readonly _worker?: WorkerFn<T, R>
 
     private _mu: Mutex = new Mutex()
     private _musl: Mutex = new Mutex()
@@ -15,7 +16,7 @@ export class Queue<T, R> {
     private _mugw: Mutex = new Mutex()
     private _muiw: Mutex = new Mutex()
 
-    private _queue: T[] = []
+    private _queue: Task<T>[] = []
     private _buff: R[] = []
     private _inWork: number = 0
 
@@ -23,7 +24,7 @@ export class Queue<T, R> {
 
     private _intervals: NodeJS.Timeout[] = []
 
-    constructor(config: QueueConfig<T, R>) {
+    constructor(config: QueueConfig<T, R> = { workPolicy: 'after-add' }) {
         config = {
             ...{
                 workPolicy: 'after-add',
@@ -72,7 +73,11 @@ export class Queue<T, R> {
         this._safeInWorkIncrement(1)
         if (item === undefined) return
 
-        const response = await Promise.resolve(this._worker(item))
+        const worker = item.worker || this._worker
+        if (worker === undefined) {
+            throw new Error(`Worker is not provided`)
+        }
+        const response = await Promise.resolve(worker(item.task))
 
         if (Array.isArray(response)) {
             this._buff.push(...response)
@@ -106,9 +111,13 @@ export class Queue<T, R> {
         return await this.get()
     }
 
-    async push(item: T | T[]) {
+    async push(item: T | T[], worker?: WorkerFn<T, R>) {
+        if (worker === undefined && this._worker === undefined) {
+            throw new Error(`Worker is not provided`)
+        }
+
         if (Array.isArray(item)) {
-            item.map((v) => this.push(v))
+            item.map((v) => this.push(v, worker))
             return
         }
 
@@ -126,7 +135,10 @@ export class Queue<T, R> {
             await this._musl.acquire()
             await this._musl.waitForUnlock()
         }
-        this._queue.push(item)
+        this._queue.push({
+            task: item,
+            worker,
+        })
         release(), this._afterPush()
     }
 

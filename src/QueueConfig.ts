@@ -1,7 +1,7 @@
 import { WorkerFn } from './WorkerFn'
 
 export type QueueConfig<T, R> = {
-    worker: WorkerFn<T, R>
+    worker?: WorkerFn<T, R>
     queueSizeLimit?: number
     buffSizeLimit?: number
 } & (
