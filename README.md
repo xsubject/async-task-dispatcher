@@ -23,7 +23,7 @@ The constructor takes a `QueueConfig` object as an argument.
 
 ### QueueConfig<T, R>
 
-- `worker`: Worker function that processes tasks of type `T` and returns a Promise of type `R`.
+- `worker` (optional): Worker function that processes tasks of type `T` and returns a Promise of type `R`.
 - `queueSizeLimit` (optional): Limits the maximum allowed size of the task queue.
 - `buffSizeLimit` (optional): Limits the maximum allowed size of the results buffer that have not yet been retrieved.
 - `workPolicy`: Configures how tasks are processed in the queue.
@@ -35,7 +35,7 @@ The constructor takes a `QueueConfig` object as an argument.
 ### Methods
 
 - `get(): Promise<R>`: Returns a single ready task result. If there are no results available, it will wait for them.
-- `push(item: T | T[]): Promise<void>`: Adds tasks to the queue.
+- `push(item: T | T[], worker?: WorkerFn<T, R>): Promise<void>`: Adds tasks to the queue.
 - `clear(): void`: Stops the background worker.
 - `get length(): number`: Returns the size of the task queue.
 - `get buff(): number`: Returns the size of the results buffer.
