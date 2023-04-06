@@ -2,7 +2,7 @@ import { Mutex } from 'async-mutex'
 import { QueueConfig } from './QueueConfig'
 import { Task } from './Task'
 import { WorkerFn } from './WorkerFn'
-
+import { Response } from './Respose'
 export class Queue<T, R> {
     public readonly queueSizeLimit?: number
     public readonly buffSizeLimit?: number
@@ -17,7 +17,7 @@ export class Queue<T, R> {
     private _muiw: Mutex = new Mutex()
 
     private _queue: Task<T>[] = []
-    private _buff: R[] = []
+    private _buff: Response<R>[] = []
     private _inWork: number = 0
 
     private _afterPush = () => {}
@@ -78,13 +78,35 @@ export class Queue<T, R> {
         if (worker === undefined) {
             throw new Error(`Worker is not provided`)
         }
-        const response = await Promise.resolve(worker(item.task))
 
-        if (Array.isArray(response)) {
-            this._buff.push(...response)
-        } else {
-            this._buff.push(response)
+        let response: any
+        let error: any
+        try {
+            response = await Promise.resolve(worker(item.task))
+        } catch (e: any) {
+            error = e
         }
+
+        if (response) {
+            if (Array.isArray(response)) {
+                this._buff.push(
+                    ...response.map((item) => {
+                        {
+                            return { item }
+                        }
+                    })
+                )
+            } else {
+                this._buff.push({
+                    item: response,
+                })
+            }
+        } else if (error) {
+            this._buff.push({
+                error,
+            })
+        }
+
         this._safeInWorkIncrement(-1)
 
         if (this._mugw.isLocked()) {
@@ -104,14 +126,17 @@ export class Queue<T, R> {
         const release = await this._mug.acquire()
 
         const item = this._buff.shift()
-        // console.log(item)
 
         if (item !== undefined) {
             if (this._musl.isLocked()) {
                 this._musl.release()
             }
             release()
-            return item as ER
+            if (item.error) {
+                throw item.error
+            } else {
+                return item.item as ER
+            }
         }
 
         await this._mugw.acquire()
