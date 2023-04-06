@@ -100,7 +100,7 @@ export class Queue<T, R> {
         return response
     }
 
-    async get(): Promise<R> {
+    async get<ER = R>(): Promise<ER> {
         const release = await this._mug.acquire()
 
         const item = this._buff.shift()
@@ -111,7 +111,7 @@ export class Queue<T, R> {
                 this._musl.release()
             }
             release()
-            return item
+            return item as ER
         }
 
         await this._mugw.acquire()
