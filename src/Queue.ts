@@ -46,6 +46,8 @@ export class Queue<T, R> {
             }
         } else if (config.workPolicy === 'after-add') {
             this._afterPush = () => this._work()
+        } else if (config.workPolicy === 'sync') {
+            this._startSync()
         }
     }
 
@@ -55,6 +57,14 @@ export class Queue<T, R> {
                 this._work()
             }, interval)
         )
+    }
+
+    private _startSync() {
+        setImmediate(async () => {
+            while (!this._cleared) {
+                await this._work()
+            }
+        })
     }
 
     private async _clerIntervals() {

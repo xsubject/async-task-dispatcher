@@ -73,6 +73,10 @@ describe('Queue', () => {
         await shouldWork({ workPolicy: 'after-add' })
     })
 
+    test('should work with sync policy', async () => {
+        await shouldWork({ workPolicy: 'sync' })
+    })
+
     test('should work with async-cycle-one policy with default interval', async () => {
         await shouldWork({ workPolicy: 'async-cycle-one' })
     })

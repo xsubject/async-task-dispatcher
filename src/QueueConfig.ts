@@ -8,6 +8,9 @@ export type QueueConfig<T, R> = {
           workPolicy: 'after-add'
       }
     | {
+          workPolicy: 'sync'
+      }
+    | {
           workPolicy: 'async-cycle-one'
           interval?: number
       }
