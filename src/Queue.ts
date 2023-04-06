@@ -11,6 +11,7 @@ export class Queue<T, R> {
 
     private _mu: Mutex = new Mutex()
     private _musl: Mutex = new Mutex()
+    private _mus: Mutex = new Mutex()
     private _mug: Mutex = new Mutex()
     private _mugw: Mutex = new Mutex()
     private _muiw: Mutex = new Mutex()
@@ -23,11 +24,12 @@ export class Queue<T, R> {
 
     private _intervals: NodeJS.Timeout[] = []
     private _cleared: boolean = false
+    private _syncWork: boolean = false
 
-    constructor(config: QueueConfig<T, R> = { workPolicy: 'after-add' }) {
+    constructor(config: QueueConfig<T, R> = {}) {
         config = {
             ...{
-                workPolicy: 'after-add',
+                workPolicy: 'sync',
             },
             ...config,
         }
@@ -46,8 +48,6 @@ export class Queue<T, R> {
             }
         } else if (config.workPolicy === 'after-add') {
             this._afterPush = () => this._work()
-        } else if (config.workPolicy === 'sync') {
-            this._startSync()
         }
     }
 
@@ -59,12 +59,10 @@ export class Queue<T, R> {
         )
     }
 
-    private _startSync() {
-        setImmediate(async () => {
-            while (!this._cleared) {
-                await this._work()
-            }
-        })
+    private async _startSync() {
+        const release = await this._mus.acquire()
+        await this._work()
+        release()
     }
 
     private async _clerIntervals() {
@@ -175,6 +173,7 @@ export class Queue<T, R> {
             task: item,
             worker,
         })
+        this._startSync()
         release(), this._afterPush()
     }
 

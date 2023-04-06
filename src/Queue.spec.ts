@@ -51,7 +51,7 @@ describe('Queue', () => {
         }
         queue = new Queue<number, string>({ worker, limit: 3 })
 
-        const p = queue.push([1, 2, 3, 4, 5])
+        queue.push([1, 2, 3, 4, 5])
 
         await wait(10)
 
