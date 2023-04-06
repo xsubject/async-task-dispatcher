@@ -79,8 +79,8 @@ export class Queue<T, R> {
 
     private async _work() {
         const item = this._queue.shift()
-        this._safeInWorkIncrement(1)
         if (item === undefined) return
+        this._safeInWorkIncrement(1)
 
         const worker = item.worker || this._worker
         if (worker === undefined) {
