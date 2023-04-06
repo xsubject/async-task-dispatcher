@@ -226,7 +226,7 @@ describe('Queue', () => {
         const endTime = Date.now()
 
         expect(results.sort()).toEqual(['Processed: 1', 'Processed: 2'])
-        expect(endTime - startTime).toBeGreaterThanOrEqual(20)
+        expect(endTime - startTime).toBeGreaterThanOrEqual(30)
     })
 
     test('should process tasks concurrently when using async-cycle-many policy', async () => {
