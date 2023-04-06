@@ -23,6 +23,7 @@ export class Queue<T, R> {
     private _afterPush = () => {}
 
     private _intervals: NodeJS.Timeout[] = []
+    private _cleared: boolean = false
 
     constructor(config: QueueConfig<T, R> = { workPolicy: 'after-add' }) {
         config = {
@@ -91,6 +92,14 @@ export class Queue<T, R> {
         }
     }
 
+    async getMany(count: number) {
+        const response: R[] = []
+        for (let i = 0; i < count; i++) {
+            response.push((await this.get()) as R)
+        }
+        return response
+    }
+
     async get(): Promise<R> {
         const release = await this._mug.acquire()
 
@@ -145,6 +154,7 @@ export class Queue<T, R> {
     clear() {
         this._clerIntervals()
         this._afterPush = () => {}
+        this._cleared = true
     }
 
     get length(): number {
@@ -161,5 +171,9 @@ export class Queue<T, R> {
 
     get buff(): number {
         return this._buff.length
+    }
+
+    get clearead(): boolean {
+        return this._cleared
     }
 }
