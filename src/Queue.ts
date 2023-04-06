@@ -199,7 +199,7 @@ export class Queue<T, R> {
         return this._buff.length
     }
 
-    get clearead(): boolean {
+    get cleared(): boolean {
         return this._cleared
     }
 }

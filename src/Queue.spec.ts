@@ -120,7 +120,7 @@ describe('Queue', () => {
         await queue.push(1)
         queue.clear()
 
-        expect(queue.clearead).toBe(true)
+        expect(queue.cleared).toBe(true)
     })
 
     test.skip('should reflect correct state in length, size, buff, and working properties', async () => {
@@ -372,6 +372,6 @@ describe('Queue', () => {
     })
 
     afterEach(() => {
-        queue && !queue.clearead && queue.clear()
+        queue && !queue.cleared && queue.clear()
     })
 })
