@@ -352,6 +352,6 @@ describe('Queue', () => {
     })
 
     afterEach(() => {
-        queue && queue.clear()
+        queue && !queue.clearead && queue.clear()
     })
 })
