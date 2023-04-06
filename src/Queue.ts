@@ -4,8 +4,7 @@ import { Task } from './Task'
 import { WorkerFn } from './WorkerFn'
 import { Response } from './Respose'
 export class Queue<T, R> {
-    public readonly queueSizeLimit?: number
-    public readonly buffSizeLimit?: number
+    public readonly limit?: number
     public readonly workPolicy: string
 
     private readonly _worker?: WorkerFn<T, R>
@@ -33,11 +32,10 @@ export class Queue<T, R> {
             ...config,
         }
 
-        const { queueSizeLimit, buffSizeLimit, worker, workPolicy } = config
+        const { limit, worker, workPolicy } = config
 
         this.workPolicy = workPolicy
-        this.queueSizeLimit = queueSizeLimit
-        this.buffSizeLimit = buffSizeLimit
+        this.limit = limit
         this._worker = worker
 
         if (config.workPolicy === 'async-cycle-one') {
@@ -157,15 +155,9 @@ export class Queue<T, R> {
 
         const release = await this._mu.acquire()
 
-        if (this._musl.isLocked()) {
-            await this._musl.waitForUnlock()
-        }
+        await this._musl.waitForUnlock()
 
-        if (
-            (this.queueSizeLimit &&
-                this._queue.length >= this.queueSizeLimit) ||
-            (this.buffSizeLimit && this._buff.length >= this.buffSizeLimit)
-        ) {
+        if (this.limit && this.length >= this.limit) {
             await this._musl.acquire()
             await this._musl.waitForUnlock()
         }

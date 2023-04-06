@@ -24,8 +24,7 @@ The constructor takes a `QueueConfig` object as an argument.
 ### QueueConfig<T, R>
 
 - `worker` (optional): Worker function that processes tasks of type `T` and returns a Promise of type `R`.
-- `queueSizeLimit` (optional): Limits the maximum allowed size of the task queue.
-- `buffSizeLimit` (optional): Limits the maximum allowed size of the results buffer that have not yet been retrieved.
+- `limit` (optional): Limits the maximum allowed size of the tasks in queue.
 - `workPolicy`: Configures how tasks are processed in the queue.
   - `after-add` (default): The worker is started immediately after calling the `push()` method.
   - `async-cycle-one`: The worker is started in a separate asynchronous call with an optional `interval`.

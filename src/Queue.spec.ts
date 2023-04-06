@@ -2,7 +2,8 @@ import { describe, expect, test } from '@jest/globals'
 import { Queue } from './Queue'
 import { QueueConfig } from './QueueConfig'
 import { WorkerFn } from './WorkerFn'
-
+const wait = async (timeout: number) =>
+    new Promise((done) => setTimeout(done, timeout))
 describe('Queue', () => {
     let queue: Queue<any, any>
 
@@ -41,16 +42,31 @@ describe('Queue', () => {
         expect(result).toBe('Custom: 1')
     })
 
-    test('should block push when queue size limit reached', async () => {
-        // TODO
-    })
+    test('should block push when limit reached', async () => {
+        const tmp: any = {}
 
-    test('should block push when buffer size limit reached', async () => {
-        // TODO
-    })
+        const worker: WorkerFn<number, string> = async (item) => {
+            tmp[item] = true
+            return `Processed: ${item}`
+        }
+        queue = new Queue<number, string>({ worker, limit: 3 })
 
-    test('should push successfully after getting an item when limit reached', async () => {
-        // TODO
+        const p = queue.push([1, 2, 3, 4, 5])
+
+        await wait(10)
+
+        expect(queue.buff).toBe(3)
+        expect(tmp[1]).toBe(true)
+        expect(tmp[2]).toBe(true)
+        expect(tmp[3]).toBe(true)
+        expect(tmp[4]).toBe(undefined)
+        await queue.get()
+
+        await wait(10)
+
+        expect(queue.buff).toBe(3)
+        expect(tmp[4]).toBe(true)
+        expect(tmp[5]).toBe(undefined)
     })
 
     test('should work with after-add policy', async () => {
